@@ -9,14 +9,17 @@
 # define ERROR_RANGE_OUT_OF_ORDER 4
 
 # define TKN_OP 1 << 1
-# define TKN_OP_STAR 1 << 1 // *
-# define TKN_OP_RANGE 1 << 1 // {}
-# define TKN_OP_QUERY 1 << 1 // ?
-# define TKN_OP_PLUS 1 << 1 // +
-# define TKN_TREE 1 << 2
-# define TKN_EXPR 1 << 3
-
-# define RNG_EXPR 1 << 1
-# define CST_EXPR 1 << 2
+# define TKN_OP_EXPR 1 << 12
+# define TKN_EXPR 1 << 2
+# define TKN_OP_STAR 1 << 3 // *
+# define TKN_OP_START 1 << 11 // ^
+# define TKN_OP_END 1 << 13 // $
+# define TKN_OP_RANGE 1 << 4 // {}
+# define TKN_OP_QUERY 1 << 5 // ?
+# define TKN_OP_PLUS 1 << 6 // +
+# define TKN_TREE 1 << 7 // (expr1|expr2)
+# define TKN_EXPR_RNG 1 << 8 // [a-z]
+# define TKN_EXPR_CST 1 << 9 // const
+# define TKN_EXPR_ANY 1 << 10 // .
 
 #endif

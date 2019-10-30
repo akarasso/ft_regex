@@ -6,18 +6,28 @@
 # include <stdio.h>
 # include <unistd.h>
 
-typedef struct s_regex			t_regex;
-typedef struct s_match_parser	t_match_parser;
-typedef struct s_token			t_token;
-typedef struct s_bin_tree		t_bin_tree;
-typedef struct s_bracket_parser	t_bracket_parser;
-typedef int						(*t_match_func)(char*, int, int*);
-typedef int						(*t_parser_func)(t_token*, char*, int);
+typedef struct s_regex				t_regex;
+typedef struct s_match				t_match;
+typedef struct s_lexer_match_parser	t_lexer_match_parser;
+typedef struct s_token				t_token;
+typedef struct s_bin_tree			t_bin_tree;
+typedef struct s_bracket_parser		t_bracket_parser;
+typedef int							(*t_lexer_match_func)(char*, int, int*);
+typedef int							(*t_lexer_parser_func)(t_token*, char*, int);
+typedef int							(*t_match_func)(t_bin_tree *, char *, int *);
 
-struct	s_match_parser
+struct	s_lexer_match_parser
 {
-	t_match_func	match;
-	t_parser_func	parser;
+	t_lexer_match_func	match;
+	t_lexer_parser_func	parser;
+	int				token_type;
+	char			*debug;
+};
+
+struct	s_match
+{
+	int				token_type;
+	t_match_func	func;
 	char			*debug;
 };
 
@@ -40,13 +50,13 @@ struct	s_bracket_parser
 
 struct	s_token_op
 {
-	int	type;
 	int	min;
 	int	max;
 };
 
 struct	s_token_expr_range
 {
+	char	reverse;
 	char	sbc[128];
 	char	*utf8_table;
 	size_t	utf8_size_table;
@@ -55,6 +65,7 @@ struct	s_token_expr_range
 struct	s_token_expr_const
 {
 	char	*value;
+	int		size;
 };
 
 union	u_token_expr
@@ -63,16 +74,10 @@ union	u_token_expr
 	struct	s_token_expr_range rng;
 };
 
-struct	s_token_expr
-{
-	int		type;
-	union	u_token_expr data;
-};
-
 union	u_token
 {
 	struct s_token_op	op;
-	struct s_token_expr	expr;
+	union u_token_expr	expr;
 };
 
 struct	s_token
@@ -98,6 +103,7 @@ struct	s_regex
 {
 	char		*test;
 	t_bin_tree	*tree;
+	t_bin_tree	*last;
 };
 
 #endif

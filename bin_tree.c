@@ -1,29 +1,7 @@
 #include "regex.h"
 #include "internal_regex.h"
 
-void	rpush_leaf(t_bin_tree **parent, t_bin_tree *child)
-{
-	if (*parent)
-	{
-		(*parent)->right = child;
-		child->parent = (*parent);
-		return;
-	}
-	*parent = child;
-}
-
-void	lpush_leaf(t_bin_tree **parent, t_bin_tree *child)
-{
-	if (*parent)
-	{
-		(*parent)->left = child;
-		child->parent = (*parent);
-		return;
-	}
-	*parent = child;
-}
-
-t_bin_tree	*create_leaf()
+t_bin_tree	*create_leaf(int token_type)
 {
 	t_bin_tree	*leaf;
 
@@ -31,16 +9,39 @@ t_bin_tree	*create_leaf()
 	if (!leaf)
 		return (0x0);
 	memset(leaf, 0, sizeof(*leaf));
+	leaf->re_token.type = token_type;
 	return (leaf);
 }
 
-void	re_push_leaf(t_bin_tree **parent, t_bin_tree *leaf)
+void	push_leaf(t_regex *r, t_bin_tree *leaf)
 {
-	if (!*parent)
+	if (!r->last)
 	{
-		rpush_leaf(parent, leaf);
-		return;
+		r->tree = leaf;
+		r->last = leaf;
+		leaf->parent = 0x0;
+	}
+	else
+	{
+		if ((r->last->re_token.type & TKN_OP_EXPR))
+		{
+			if (!r->last->left)
+			{
+				r->last->left = leaf;
+				leaf->parent = r->last;
+			}
+			else
+			{
+				r->last->right = leaf;
+				leaf->parent = r->last;
+				r->last = leaf;
+			}
+		}
+		else
+		{
+			r->last->right = leaf;
+			leaf->parent = r->last;
+			r->last = leaf;
+		}
 	}
 }
-
-// Dupliquer une branche
