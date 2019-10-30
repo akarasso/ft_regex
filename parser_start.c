@@ -1,8 +1,8 @@
 #include "regex.h"
 #include "internal_regex.h"
 
-int		lexer_parser_start(t_token *token, char *pat, int size_match)
+int		lexer_parser_start(t_bin_tree *leaf, char *pat, int size_match)
 {
-	token->type = token->type | TKN_OP_START;
+	leaf->re_token.type = leaf->re_token.type | TKN_OP_START;
 	return (OK);
 }

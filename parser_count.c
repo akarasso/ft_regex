@@ -1,32 +1,41 @@
 #include "regex.h"
 #include "internal_regex.h"
 
-int		lexer_parser_subexpre(t_token *token, char *pat, int size_match)
+int		lexer_parser_group(t_bin_tree *leaf, char *pat, int size_match)
 {
-	token->type = TKN_TREE; // Do recreate full tree from regex shouldn't be here
+	t_regex sub;
+	int ret;
+
+	leaf->re_token.type = leaf->re_token.type | TKN_GROUP;
+	sub.test = pat;
+	sub.tree = 0x0;
+	sub.last = 0x0;
+	ret = re_compile_internal(&sub, pat + 1, size_match - 2);
+	if (ret == OK)
+		leaf->left = sub.tree;
+	return (ret);
 }
 
-void	lexer_parser_count_range(t_token *token, char *pat, int size_match)
+void	lexer_parser_count_range(t_bin_tree *leaf, char *pat, int size_match)
 {
 	int		index;
 	char	selecteur;
 
 	selecteur = 0;
 	index = 0;
-	token->data.op.min = 0;
-	token->data.op.max = -1;
+	leaf->re_token.data.op.min = 0;
+	leaf->re_token.data.op.max = -1;
 	while (index < size_match)
 	{
 		if (pat[index] >= '0' && pat[index] <= '9')
 		{
 			if (!selecteur)
-				token->data.op.min = token->data.op.min * 10 + (pat[index] - '0');
+				leaf->re_token.data.op.min = leaf->re_token.data.op.min * 10 + (pat[index] - '0');
 			else
 			{
-				// printf("Min %d Max %d\n", token->data.op.min, token->data.op.max);
-				if (token->data.op.max < 0)
-					token->data.op.max = 0;
-				token->data.op.max = token->data.op.max * 10 + (pat[index] - '0');
+				if (leaf->re_token.data.op.max < 0)
+					leaf->re_token.data.op.max = 0;
+				leaf->re_token.data.op.max = leaf->re_token.data.op.max * 10 + (pat[index] - '0');
 			}
 		}
 		else if (pat[index] == ',')
@@ -35,19 +44,27 @@ void	lexer_parser_count_range(t_token *token, char *pat, int size_match)
 	}
 }
 
-int		lexer_parser_count(t_token *token, char *pat, int size_match)
+int		lexer_parser_count(t_bin_tree *leaf, char *pat, int size_match)
 {
-	if (*pat == '*')
-		token->type = token->type | TKN_OP_STAR;
-	else if (*pat == '?')
-		token->type = token->type | TKN_OP_QUERY;
-	else if (*pat == '+')
-		token->type = token->type | TKN_OP_PLUS;
-	else
-	{
-		// printf("Range count\n");
-		token->type = token->type | TKN_OP_RANGE;
-		lexer_parser_count_range(token, pat + 1, size_match);
-		// printf("Min %d Max %d\n", token->data.op.min, token->data.op.max);
-	}
+	leaf->re_token.type = leaf->re_token.type | TKN_OP_RANGE;
+	lexer_parser_count_range(leaf, pat + 1, size_match);
+	return (OK);
+}
+
+int		lexer_parser_star(t_bin_tree *leaf, char *pat, int size_match)
+{
+	leaf->re_token.type = leaf->re_token.type | TKN_OP_STAR;
+	return (OK);
+}
+
+int		lexer_parser_query(t_bin_tree *leaf, char *pat, int size_match)
+{
+	leaf->re_token.type = leaf->re_token.type | TKN_OP_QUERY;
+	return (OK);
+}
+
+int		lexer_parser_plus(t_bin_tree *leaf, char *pat, int size_match)
+{
+	leaf->re_token.type = leaf->re_token.type | TKN_OP_PLUS;
+	return (OK);
 }

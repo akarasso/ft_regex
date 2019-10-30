@@ -5,7 +5,7 @@ t_bracket_parser brackets[] = {
 	{":alnum:", "[A-Za-z0-9]"},
 };
 
-int		lexer_parser_bracket_chars_classes(t_token *token, char *pat, int *cursor)
+int		lexer_parser_bracket_chars_classes(t_bin_tree *leaf, char *pat, int *cursor)
 {
 	int	save_cursor;
 	int	index_char_classes;
@@ -22,7 +22,7 @@ int		lexer_parser_bracket_chars_classes(t_token *token, char *pat, int *cursor)
 			if (!strncmp(brackets[index_char_classes].match, &pat[save_cursor], *cursor))
 			{
 				(*cursor)++;
-				lexer_parser_bracket(token, brackets[index_char_classes].associated, strlen(brackets[index_char_classes].associated));
+				lexer_parser_bracket(leaf, brackets[index_char_classes].associated, strlen(brackets[index_char_classes].associated));
 				return (OK);
 			}
 			index_char_classes++;
@@ -33,7 +33,7 @@ int		lexer_parser_bracket_chars_classes(t_token *token, char *pat, int *cursor)
 	return (KO);
 }
 
-int		lexer_parser_bracket_range(t_token *token, char *pat)
+int		lexer_parser_bracket_range(t_bin_tree *leaf, char *pat)
 {
 	int		start;
 	int		end;
@@ -44,13 +44,13 @@ int		lexer_parser_bracket_range(t_token *token, char *pat)
 		return (KO);
 	while (start <= end)
 	{
-		token->data.expr.rng.sbc[start] = 1;
+		leaf->re_token.data.expr.rng.sbc[start] = 1;
 		start++;
 	}
 	return (OK);
 }
 
-int		lexer_parser_bracket_parser(t_token *token, char *pat, int size_match)
+int		lexer_parser_bracket_parser(t_bin_tree *leaf, char *pat, int size_match)
 {
 	int		cursor;
 	int		err;
@@ -59,12 +59,16 @@ int		lexer_parser_bracket_parser(t_token *token, char *pat, int size_match)
 	cursor = 0;
 	while (cursor < size_match)
 	{
+		if (pat[cursor] == '\\')
+		{
+			cursor++;
+			continue;
+		}
 		if (pat[cursor] == '[' && pat[cursor + 1] == ':')
 		{
-			err = lexer_parser_bracket_chars_classes(token, &pat[cursor + 1], &cursor);
+			err = lexer_parser_bracket_chars_classes(leaf, &pat[cursor + 1], &cursor);
 			if (err == OK)
 			{
-				printf("CHAR CLASSES\n");
 				cursor++;
 				continue;
 			}
@@ -73,37 +77,28 @@ int		lexer_parser_bracket_parser(t_token *token, char *pat, int size_match)
 		}
 		if (size_match - cursor > 2 && pat[cursor + 1] == '-')
 		{
-			printf("RANGE\n");
-			if (lexer_parser_bracket_range(token, &pat[cursor]) == KO)
+			if (lexer_parser_bracket_range(leaf, &pat[cursor]) == KO)
 				return (ERROR_RANGE_OUT_OF_ORDER);
 			cursor += 2;
 		}
 		else
-		{
-			printf("SBC %c\n", pat[cursor]);
-			token->data.expr.rng.sbc[(int)pat[cursor]] = 1;
-		}
+			leaf->re_token.data.expr.rng.sbc[(int)pat[cursor]] = 1;
 		cursor++;
 	}
 	return OK;
 }
 
-int		lexer_parser_bracket(t_token *token, char *pat, int size_match)
+int		lexer_parser_bracket(t_bin_tree *leaf, char *pat, int size_match)
 {
 	int err;
-	int start;
 
-	printf("Range token {%.*s}\n", size_match - 2, &pat[1]);
-	token->type = token->type | TKN_EXPR_RNG;
-	start = 1;
-	if (pat[start] == '^')
+	leaf->re_token.type = leaf->re_token.type | TKN_EXPR_RNG;
+	if (pat[1] == '^')
 	{
-		token->data.expr.rng.reverse = 1;
-		start++;
+		leaf->re_token.data.expr.rng.reverse = 1;
+		err = lexer_parser_bracket_parser(leaf, &pat[2], size_match - 3);
 	}
-	err = lexer_parser_bracket_parser(token, &pat[start], size_match - 2);
-	if (err != OK)
-	{
-		printf("Error num: %d\n", err);
-	}
+	else
+		err = lexer_parser_bracket_parser(leaf, &pat[1], size_match - 2);
+	return err;
 }

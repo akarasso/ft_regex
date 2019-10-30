@@ -3,57 +3,57 @@
 
 int		re_match_op_end(t_bin_tree *leaf, char *origin, int *cursor)
 {
-	t_match	*match;
-
 	if (!origin[*cursor] || origin[*cursor + 1] == '\n')
 		return (OK);
 	return (KO);
 }
 
+int		re_match_expr_group(t_bin_tree *leaf, char *origin, int *cursor)
+{
+	int	save_cursor;
+
+	save_cursor = *cursor;
+	if (leaf->left->exec(leaf->left, origin, cursor) != OK)
+		return KO;
+	// Should extract string here
+	return (OK);
+}
+
 int		re_match_op_start(t_bin_tree *leaf, char *origin, int *cursor)
 {
-	t_match	*match;
-
 	if (*cursor != 0 && origin[(*cursor) - 1] == '\n')
 		return (KO);
 	if (leaf->right)
-	{
-		match = re_get_match_func(&leaf->right->re_token);
-		return match->func(leaf->right, origin, cursor);
-	}
+		return leaf->right->exec(leaf->right, origin, cursor);
 	return KO;
 }
 
 int		re_match_op_star(t_bin_tree *leaf, char *origin, int *cursor)
 {
-	t_match	*match;
+	int		save_cursor;
 
-	match = re_get_match_func(&leaf->left->re_token);
-	while (origin[*cursor] && match->func(leaf->left, origin, cursor) == OK)
+	printf("STAR\n");
+	save_cursor = *cursor;
+	leaf->left->exec(leaf->left, origin, cursor);
+	while (save_cursor != *cursor && origin[*cursor] && leaf->left->exec(leaf->left, origin, cursor) == OK)
 		;
+	printf("%p\n", leaf->left->exec);
 	if (leaf->right)
-	{
-		match = re_get_match_func(&leaf->right->re_token);
-		return match->func(leaf->right, origin, cursor);
-	}
+		return leaf->right->exec(leaf->right, origin, cursor);
 	return OK;
 }
 
-int		re_match_op_rng(t_bin_tree *leaf, char *origin, int *cursor)
+int		re_match_op_count(t_bin_tree *leaf, char *origin, int *cursor)
 {
-	t_match	*match_left;
-	t_match	*match_right;
 	int 	min;
 	int 	i;
 	int		save_cursor;
 
-	match_left = re_get_match_func(&leaf->left->re_token);
-	match_right = re_get_match_func(&leaf->left->re_token);
 	save_cursor = *cursor;
 	i = 0;
 	while (i < leaf->re_token.data.op.min)
 	{
-		if (origin[*cursor] && match_left->func(leaf->left, origin, cursor) != OK)
+		if (origin[*cursor] && leaf->left->exec(leaf->left, origin, cursor) != OK)
 		{
 			*cursor = save_cursor;
 			return (KO);
@@ -64,67 +64,68 @@ int		re_match_op_rng(t_bin_tree *leaf, char *origin, int *cursor)
 		return (KO);
 	while ((i < leaf->re_token.data.op.max && leaf->re_token.data.op.max > 0
 		|| leaf->re_token.data.op.max < 0) && origin[*cursor]
-		&& match_left->func(leaf->left, origin, cursor) == OK)
+		&& leaf->left->exec(leaf->left, origin, cursor) == OK)
 		i++;
 	if (leaf->right)
-		return match_right->func(leaf->right, origin, cursor);
+		return leaf->right->exec(leaf->right, origin, cursor);
 	return (OK);
 }
 
 int		re_match_op_query(t_bin_tree *leaf, char *origin, int *cursor)
 {
-	t_match	*match_left;
-	t_match	*match_right;
 	int		save_cursor;
 
-	match_left = re_get_match_func(&leaf->left->re_token);
-	match_right = re_get_match_func(&leaf->left->re_token);
 	if (leaf->right)
 	{
 		save_cursor = *cursor;
-		if (match_left->func(leaf->left, origin, cursor) == OK) {
-			if (match_right->func(leaf->right, origin, cursor) == OK)
+		if (leaf->left->exec(leaf->left, origin, cursor) == OK) {
+			if (leaf->right->exec(leaf->right, origin, cursor) == OK)
+			{
 				return (OK);
+			}
 			(*cursor) = save_cursor;
 		} 
-		return (match_right->func(leaf->right, origin, cursor));
+		return (leaf->right->exec(leaf->right, origin, cursor));
 	}
 	return (OK);
 }
 
 int		re_match_op_plus(t_bin_tree *leaf, char *origin, int *cursor)
 {
-	t_match	*match;
+	int		save_cursor;
 
-	match = re_get_match_func(&leaf->left->re_token);
-	if (match->func(leaf->left, origin, cursor) != OK)
+	save_cursor = *cursor;
+	if (leaf->left->exec(leaf->left, origin, cursor) != OK)
 		return (KO);
-	while (origin[*cursor] && match->func(leaf->left, origin, cursor) == OK)
+	while (save_cursor != *cursor && origin[*cursor] && leaf->left->exec(leaf->left, origin, cursor) == OK)
 		;
 	if (leaf->right)
-	{
-		match = re_get_match_func(&leaf->right->re_token);
-		return match->func(leaf->right, origin, cursor);
-	}
+		return leaf->right->exec(leaf->right, origin, cursor);
 	return OK;
 }
 
 int		re_match_expr_rng(t_bin_tree *leaf, char *origin, int *cursor)
 {
-	
+	if ((leaf->re_token.data.expr.rng.sbc[(unsigned int)*origin] == 1
+			&& leaf->re_token.data.expr.rng.reverse == 0)
+		|| (leaf->re_token.data.expr.rng.sbc[(unsigned int)*origin] == 0
+			&& leaf->re_token.data.expr.rng.reverse == 1))
+	{
+		(*cursor)++;
+		return (OK);
+	}
+	return (KO);
 }
 
 int		re_match_expr_cst(t_bin_tree *leaf, char *origin, int *cursor)
 {
-	t_match	*match;
-
+	printf("CHECK CONST {%d} %s to %s\n", leaf->re_token.data.expr.cst.size, leaf->re_token.data.expr.cst.value, &origin[*cursor]);
 	if (!strncmp(&origin[*cursor], leaf->re_token.data.expr.cst.value, leaf->re_token.data.expr.cst.size))
 	{
 		(*cursor) += leaf->re_token.data.expr.cst.size;
 		if (leaf->right)
 		{
-			match = re_get_match_func(&leaf->right->re_token);
-			return match->func(leaf->right, origin, cursor);
+			return leaf->right->exec(leaf->right, origin, cursor);
 		}
 		return (OK);
 	}
@@ -133,6 +134,7 @@ int		re_match_expr_cst(t_bin_tree *leaf, char *origin, int *cursor)
 
 int		re_match_expr_any(t_bin_tree *leaf, char *origin, int *cursor)
 {
+	printf("ANY\n");
 	if (origin[*cursor])
 		(*cursor)++;
 	return (OK);

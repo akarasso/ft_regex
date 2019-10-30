@@ -17,7 +17,7 @@
 # define TKN_OP_RANGE 1 << 4 // {}
 # define TKN_OP_QUERY 1 << 5 // ?
 # define TKN_OP_PLUS 1 << 6 // +
-# define TKN_TREE 1 << 7 // (expr1|expr2)
+# define TKN_GROUP 1 << 7 // (expr1|expr2)
 # define TKN_EXPR_RNG 1 << 8 // [a-z]
 # define TKN_EXPR_CST 1 << 9 // const
 # define TKN_EXPR_ANY 1 << 10 // .

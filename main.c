@@ -2,13 +2,76 @@
 #include "internal_regex.h"
 
 t_lexer_match_parser parser_func[] = {
-	{ lexer_match_bracket, lexer_parser_bracket, TKN_EXPR, "Match bracket" },
-	{ lexer_match_subexpre, 0x0, TKN_EXPR, "Match sub expr" },
-	{ lexer_match_point, lexer_parser_point, TKN_EXPR, "Match point" },
-	{ lexer_match_count, lexer_parser_count, TKN_OP_EXPR, "Match count" },
-	{ lexer_match_start, lexer_parser_start, TKN_OP, "Match SOL" },
-	{ lexer_match_end, lexer_parser_end, TKN_OP, "Match EOL" },
-	{ lexer_match_constant, lexer_parser_const, TKN_EXPR, "Match const" },
+	{
+		lexer_match_bracket,
+		lexer_parser_bracket,
+		re_match_expr_rng,
+		TKN_EXPR,
+		"bracket"
+	},
+	{
+		lexer_match_group,
+		lexer_parser_group,
+		re_match_expr_group,
+		TKN_EXPR,
+		"group"
+	},
+	{
+		lexer_match_any,
+		lexer_parser_any,
+		re_match_expr_any,
+		TKN_EXPR,
+		"point"
+	},
+	{
+		lexer_match_star,
+		lexer_parser_star,
+		re_match_op_star,
+		TKN_OP_EXPR,
+		"star"
+	},
+	{
+		lexer_match_plus,
+		lexer_parser_plus,
+		re_match_op_plus,
+		TKN_OP_EXPR,
+		"plus"
+	},
+	{
+		lexer_match_query,
+		lexer_parser_query,
+		re_match_op_query,
+		TKN_OP_EXPR,
+		"query"
+	},
+	{
+		lexer_match_count,
+		lexer_parser_count,
+		re_match_op_count,
+		TKN_OP_EXPR,
+		"count"
+	},
+	{
+		lexer_match_start,
+		lexer_parser_start,
+		re_match_op_start,
+		TKN_OP,
+		"SOL"
+	},
+	{
+		lexer_match_end,
+		lexer_parser_end,
+		re_match_op_end,
+		TKN_OP,
+		"EOL"
+	},
+	{
+		lexer_match_constant,
+		lexer_parser_const,
+		re_match_expr_cst,
+		TKN_EXPR,
+		"const"
+	},
 };
 
 t_lexer_match_parser	*re_internal_match_token(char *pat, int size, int *size_match)
@@ -21,7 +84,7 @@ t_lexer_match_parser	*re_internal_match_token(char *pat, int size, int *size_mat
 		*size_match = 0;
 		if (parser_func[i].match(pat, size, size_match) == OK)
 		{
-			printf("Match token:: %s\n", parser_func[i].debug);
+			printf("Match token :: %s\n", parser_func[i].debug);
 			return &parser_func[i];
 		}
 		i++;
@@ -35,7 +98,7 @@ int		lexer_match_constant(char *pat, int size_left, int *size_match)
 	int no;
 
 	no = 0;
-	while (pat[*size_match])
+	while (pat[*size_match] && size_left - *size_match > 0)
 	{
 		i = 0;
 		while (i < sizeof(parser_func) / sizeof(t_lexer_match_parser) - 1)
@@ -53,57 +116,14 @@ int		lexer_match_constant(char *pat, int size_left, int *size_match)
 	return (OK);
 }
 
-int		valid_stack(t_bin_tree *stack[2], char *left)
-{
-	if (stack[0] && stack[1] && (stack[0]->re_token.type & (TKN_OP))
-		&& (stack[1]->re_token.type & (TKN_OP)))
-	{
-		printf("Can't find operator token after another one. '%s'\n", left);
-		return (KO);
-	}
-	else if (stack[0]->re_token.type == TKN_OP_EXPR)
-	{
-		printf("Can't find expression before token operator. '%s'\n", left);
-		return (KO);
-	}
-	return (OK);
-}
-
-int		re_stack_inc(t_bin_tree **stack, int size, int token_type)
-{
-	t_bin_tree		*leaf;
-
-	stack[size] = create_leaf(token_type);
-	(size)++;
-}
-
-void	re_depop_stack(t_regex *r, t_bin_tree *stack[2], int *stack_crt_size)
-{
-	if (stack[1]->re_token.type & TKN_OP_EXPR)
-	{
-		push_leaf(r, stack[1]);
-		push_leaf(r, stack[0]);
-	}
-	else
-	{
-		push_leaf(r, stack[0]);
-		push_leaf(r, stack[1]);
-	}
-	*stack_crt_size = 0;
-}
-
 int		re_compile_internal(t_regex *r, char *pat, int full_size)
 {
-	t_bin_tree		*stack[2];
-	int				stack_crt_size;
-	int				size_match;
-	int				cursor;
 	t_lexer_match_parser	*match;
+	t_bin_tree				*leaf;
+	int						size_match;
+	int						cursor;
 
 	cursor = 0;
-	stack[0] = 0;
-	stack[1] = 0;
-	stack_crt_size = 0;
 	while (cursor < full_size)
 	{
 		match = re_internal_match_token(&pat[cursor], full_size - cursor, &size_match);
@@ -112,17 +132,16 @@ int		re_compile_internal(t_regex *r, char *pat, int full_size)
 			printf("No match '%s'\n", &pat[cursor]);
 			return (KO);
 		}
-		re_stack_inc(stack, stack_crt_size, match->token_type);
-		stack_crt_size++;
-		if (valid_stack(stack, &pat[cursor]) != OK)
+		leaf = create_leaf(match);
+		if (push_leaf(r, leaf) != OK)
+		{
+			printf("%s\n", &pat[cursor]);
 			return (KO);
-		match->parser(&(stack[stack_crt_size - 1]->re_token), &pat[cursor], size_match);
-		if (stack_crt_size == 2)
-			re_depop_stack(r, stack, &stack_crt_size);
+		}
+		if (match->parser(leaf, &pat[cursor], size_match) != OK)
+			return (KO);	
 		cursor += size_match;
 	}
-	if (stack_crt_size == 1)
-		push_leaf(r, stack[0]);
 	return (OK);
 }
 
