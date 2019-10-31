@@ -16,6 +16,7 @@ int		lexer_match_constant(char *pat, int size_left, int *size_match);
 int		lexer_match_star(char *pat, int size_left, int *size_match);
 int		lexer_match_query(char *pat, int size_left, int *size_match);
 int		lexer_match_plus(char *pat, int size_left, int *size_match);
+int		lexer_match_or(char *pat, int size_left, int *size_match);
 
 int		lexer_parser_start(t_bin_tree *leaf, char *pat, int size_match);
 int		lexer_parser_count(t_bin_tree *leaf, char *pat, int size_match);
@@ -29,23 +30,26 @@ int		lexer_parser_group(t_bin_tree *leaf, char *pat, int size_match);
 int		lexer_parser_star(t_bin_tree *leaf, char *pat, int size_match);
 int		lexer_parser_query(t_bin_tree *leaf, char *pat, int size_match);
 int		lexer_parser_plus(t_bin_tree *leaf, char *pat, int size_match);
+int		lexer_parser_or(t_bin_tree *leaf, char *pat, int size_match);
 
 /*
 ** Match
 */
 
-int		re_match_op_end(t_bin_tree *leaf, char *origin, int *cursor);
-int		re_match_op_start(t_bin_tree *leaf, char *str, int *cursor);
-int		re_match_op_star(t_bin_tree *leaf, char *str, int *cursor);
-int		re_match_op_count(t_bin_tree *leaf, char *str, int *cursor);
-int		re_match_op_query(t_bin_tree *leaf, char *str, int *cursor);
-int		re_match_op_plus(t_bin_tree *leaf, char *str, int *cursor);
-int		re_match_expr_rng(t_bin_tree *leaf, char *str, int *cursor);
-int		re_match_expr_cst(t_bin_tree *leaf, char *str, int *cursor);
-int		re_match_expr_any(t_bin_tree *leaf, char *str, int *cursor);
-int		re_match_expr_group(t_bin_tree *leaf, char *origin, int *cursor);
+int		re_match_op_end(t_regex_match *match, t_bin_tree *leaf, char *origin, int *cursor);
+int		re_match_op_start(t_regex_match *match, t_bin_tree *leaf, char *str, int *cursor);
+int		re_match_op_star(t_regex_match *match, t_bin_tree *leaf, char *str, int *cursor);
+int		re_match_op_count(t_regex_match *match, t_bin_tree *leaf, char *str, int *cursor);
+int		re_match_op_query(t_regex_match *match, t_bin_tree *leaf, char *str, int *cursor);
+int		re_match_op_plus(t_regex_match *match, t_bin_tree *leaf, char *str, int *cursor);
+int		re_match_expr_rng(t_regex_match *match, t_bin_tree *leaf, char *str, int *cursor);
+int		re_match_expr_cst(t_regex_match *match, t_bin_tree *leaf, char *str, int *cursor);
+int		re_match_expr_any(t_regex_match *match, t_bin_tree *leaf, char *str, int *cursor);
+int		re_match_expr_group(t_regex_match *match, t_bin_tree *leaf, char *origin, int *cursor);
+int		re_match_op_or(t_regex_match *match, t_bin_tree *leaf, char *origin, int *cursor);
 
-int		re_exec(t_regex *regex, char *str);
+int		re_test(t_regex *regex, char *str);
+int		re_exec(t_regex *regex, t_regex_match **match, int *n_match, char *str);
 
 /*
 ** Tree

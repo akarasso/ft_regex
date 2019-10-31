@@ -11,6 +11,16 @@ int		lexer_match_end(char *pat, int size_left, int *size_match)
 	return (KO);
 }
 
+int		lexer_match_or(char *pat, int size_left, int *size_match)
+{
+	if (size_left && *pat == '|')
+	{
+		*size_match = 1;
+		return (OK);
+	}
+	return (KO);
+}
+
 int		lexer_match_start(char *pat, int size_left, int *size_match)
 {
 	if (*pat == '^')
@@ -40,10 +50,12 @@ int		lexer_match_group(char *pat, int size_left, int *size_match)
 	if (!size_left || *pat != '(')
 		return (NO);
 	stack = 0;
-	while (size_left && pat[*size_match] && pat[*size_match] != ')')
+	while (size_left && pat[*size_match])
 	{
 		if (pat[*size_match] == '(')
+		{
 			stack++;
+		}
 		else if (pat[*size_match] == ')')
 		{
 			stack--;

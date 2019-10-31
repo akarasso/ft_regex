@@ -10,6 +10,13 @@ t_lexer_match_parser parser_func[] = {
 		"bracket"
 	},
 	{
+		lexer_match_or,
+		lexer_parser_or,
+		re_match_op_or,
+		TKN_OP_OR,
+		"or"
+	},
+	{
 		lexer_match_group,
 		lexer_parser_group,
 		re_match_expr_group,
@@ -139,7 +146,9 @@ int		re_compile_internal(t_regex *r, char *pat, int full_size)
 			return (KO);
 		}
 		if (match->parser(leaf, &pat[cursor], size_match) != OK)
-			return (KO);	
+			return (KO);
+		if (leaf->re_token.type & TKN_GROUP)
+			r->n_subgroup_max++;
 		cursor += size_match;
 	}
 	return (OK);
@@ -152,13 +161,17 @@ int	ft_regcomp(t_regex *r, char *pat)
 	r->test = pat;
 	r->tree = 0x0;
 	r->last = 0x0;
+	r->option = 0;
+	r->n_subgroup_max = 0;
 	ret = re_compile_internal(r, pat, strlen(pat));
 	return (ret);
 }
 
 int main(int argc, char **argv)
 {
-	t_regex	regex;
+	t_regex			regex;
+	t_regex_match	*match;
+	int				n_match;
 
 	if (argc > 1)
 	{
@@ -168,10 +181,22 @@ int main(int argc, char **argv)
 			printf("PARSE OK\n");
 			if (argc > 2)
 			{
-				if (re_exec(&regex, argv[2]) == OK)
+				if (re_exec(&regex, &match, &n_match, argv[2]) == OK)
+				{
+					int o = 0;
+					while (o < match->n_subgroup)
+					{
+						printf("Group %d: %s\n", o, match->subgroup[o]);
+						o++;
+					}
 					printf("MATCH\n");
+				}
 				else
 					printf("NO MATCH\n");
+				// if (re_test(&regex, argv[2]) == OK)
+				// 	printf("MATCH\n");
+				// else
+				// 	printf("NO MATCH\n");
 			}
 		}
 		else

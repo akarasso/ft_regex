@@ -10,6 +10,7 @@ int		lexer_parser_group(t_bin_tree *leaf, char *pat, int size_match)
 	sub.test = pat;
 	sub.tree = 0x0;
 	sub.last = 0x0;
+	printf("PARSE GROUP: %.*s\n", size_match - 2, pat + 1);
 	ret = re_compile_internal(&sub, pat + 1, size_match - 2);
 	if (ret == OK)
 		leaf->left = sub.tree;

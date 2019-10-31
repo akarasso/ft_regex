@@ -10,10 +10,11 @@ typedef struct s_regex				t_regex;
 typedef struct s_lexer_match_parser	t_lexer_match_parser;
 typedef struct s_token				t_token;
 typedef struct s_bin_tree			t_bin_tree;
+typedef struct s_regex_match		t_regex_match;
 typedef struct s_bracket_parser		t_bracket_parser;
 typedef int							(*t_lexer_match_func)(char*, int, int*);
 typedef int							(*t_lexer_parser_func)(t_bin_tree*, char*, int);
-typedef int							(*t_match_func)(t_bin_tree *, char *, int *);
+typedef int							(*t_match_func)(t_regex_match *match, t_bin_tree *, char *, int *);
 
 struct	s_lexer_match_parser
 {
@@ -98,6 +99,16 @@ struct	s_regex
 	char		*test;
 	t_bin_tree	*tree;
 	t_bin_tree	*last;
+	int			n_subgroup_max;
+	int			option;
+};
+
+struct	s_regex_match
+{
+	char		**subgroup;
+	char		*match;
+	int			n_subgroup;
+	int			option;
 };
 
 #endif

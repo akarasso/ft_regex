@@ -8,12 +8,17 @@
 # define ERROR_BAD_CHARACTERS_CLASSES 3
 # define ERROR_RANGE_OUT_OF_ORDER 4
 
+/*
+**	Lexer
+*/
+
 # define TKN_OP 1 << 1
 # define TKN_OP_EXPR 1 << 12
 # define TKN_EXPR 1 << 2
 # define TKN_OP_STAR 1 << 3 // *
 # define TKN_OP_START 1 << 11 // ^
 # define TKN_OP_END 1 << 13 // $
+# define TKN_OP_OR 1 << 14 // $
 # define TKN_OP_RANGE 1 << 4 // {}
 # define TKN_OP_QUERY 1 << 5 // ?
 # define TKN_OP_PLUS 1 << 6 // +
@@ -21,5 +26,15 @@
 # define TKN_EXPR_RNG 1 << 8 // [a-z]
 # define TKN_EXPR_CST 1 << 9 // const
 # define TKN_EXPR_ANY 1 << 10 // .
+
+
+/*
+**	Options exec
+*/
+
+# define EXTRACT_SUBGROUP	1 << 1
+# define GLOBAL				1 << 2
+# define MULTI_LINE			1 << 3
+# define CASE_INSENSITIVE	1 << 4
 
 #endif

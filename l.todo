@@ -1,10 +1,10 @@
  # Range:
  ☐ handle range utf8
- ✔ handle match range @done (19-10-30 17:14)
- ✔ handle reverse range @done (19-10-30 17:14)
-
  # Subgroup:
- ☐ get len of subgroup and extract it
-
- Bug:
-  ☐  cc -g3 *.c && ./a.out '(t*)+' 'qwd'
+ ☐ Save index start
+ ☐ Save index end
+# Options:
+ ☐ Make parse option
+# Free:
+ ☐ Make function to free t_regex
+ ☐ Make function to free t_regex_match

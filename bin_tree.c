@@ -30,6 +30,11 @@ int		valid_leaf(t_bin_tree *last, t_bin_tree *leaf)
 		printf("Can't find operator token after another one.");
 		return (KO);
 	}
+	else if ((last->re_token.type & TKN_OP_OR) && (leaf->re_token.type & TKN_OP_OR))
+	{
+		printf("Can't find operator OR after another one.");
+		return (KO);
+	}
 	else if (last->re_token.type == TKN_OP_EXPR)
 	{
 		printf("Can't find expression before token operator.");
@@ -54,6 +59,15 @@ void	push_leaf_op_expr(t_regex *r, t_bin_tree *leaf)
 	r->last = leaf;
 }
 
+void	push_leaf_op_or(t_regex *r, t_bin_tree *leaf)
+{
+	leaf->left = r->tree;
+	leaf->parent = 0x0;
+	r->tree->parent = leaf->left;
+	r->tree = leaf;
+	r->last = leaf;
+}
+
 int		push_leaf(t_regex *r, t_bin_tree *leaf)
 {
 	if (valid_leaf(r->last, leaf) != OK)
@@ -68,6 +82,8 @@ int		push_leaf(t_regex *r, t_bin_tree *leaf)
 	{
 		if ((leaf->re_token.type & TKN_OP_EXPR))
 			push_leaf_op_expr(r, leaf);
+		else if ((leaf->re_token.type & TKN_OP_OR))
+			push_leaf_op_or(r, leaf);
 		else
 		{
 			r->last->right = leaf;

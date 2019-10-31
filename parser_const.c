@@ -8,6 +8,5 @@ int		lexer_parser_const(t_bin_tree *leaf, char *pat, int size_match)
 	strncpy(leaf->re_token.data.expr.cst.value, pat, size_match);
 	leaf->re_token.data.expr.cst.value[size_match] = 0;
 	leaf->re_token.data.expr.cst.size = size_match;
-	printf("CST: %s\n", leaf->re_token.data.expr.cst.value);
 	return (OK);
 }
