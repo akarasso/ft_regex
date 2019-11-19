@@ -15,12 +15,12 @@ int		re_match_op_or(t_regex_match *match, t_bin_tree *node, char *origin, int *c
 	int		save_cursor;
 
 	if (match)
-		save_subgroup_index = match->n_subgroup;
+		save_subgroup_index = match->ngroup;
 	save_cursor = *cursor;
 	if (node->left && node->left->exec(match, node->left, origin, cursor) != OK)
 	{
 		if (match)
-			match->n_subgroup = save_subgroup_index;
+			match->ngroup = save_subgroup_index;
 		*cursor = save_cursor;
 		if (node->right)
 			return node->right->exec(match, node->right, origin, cursor);
@@ -31,7 +31,6 @@ int		re_match_op_or(t_regex_match *match, t_bin_tree *node, char *origin, int *c
 
 int		re_match_op_end(t_regex_match *match, t_bin_tree *node, char *origin, int *cursor)
 {
-	// printf("Check EOL\n");
 	if (!origin[*cursor] || ((node->re_token.options & FLAG_MULTILINE)
 		&& origin[*cursor + 1] == '\n'))
 		return (OK);
@@ -44,17 +43,14 @@ int		re_match_expr_group(t_regex_match *match, t_bin_tree *node, char *origin, i
 
 	save_cursor = *cursor;
 	if (node->left->exec(match, node->left, origin, cursor) != OK)
-		return KO;
-	if (match)
+		return (KO);
+	node->re_token.data.expr.grp.from = &origin[save_cursor];
+	node->re_token.data.expr.grp.valid = 0;
+	node->re_token.data.expr.grp.len = *cursor - save_cursor;
+	if (node->right && node->right->exec(match, node->right, origin, cursor) != OK)
 	{
-		match->subgroup[match->n_subgroup] = malloc(*cursor - save_cursor + 1);
-		strncpy(match->subgroup[match->n_subgroup], &origin[save_cursor], *cursor - save_cursor);
-		match->subgroup[match->n_subgroup][*cursor - save_cursor] = 0;
-		match->n_subgroup++;
-	}
-	if (node->right)
-	{
-		return node->right->exec(match, node->right, origin, cursor);
+		node->re_token.data.expr.grp.valid = 1;
+		return (KO);
 	}
 	return (OK);
 }
@@ -103,13 +99,21 @@ int		re_match_op_count(t_regex_match *match, t_bin_tree *node, char *origin, int
 			return (KO);
 		}
 		i++;
+		if (!origin[*cursor])
+			break;
 	}
 	if (i < node->re_token.data.op.min)
+	{
+		*cursor = save_cursor;
 		return (KO);
-	while ((i < node->re_token.data.op.max && node->re_token.data.op.max > 0
-		|| node->re_token.data.op.max < 0) && origin[*cursor]
-		&& node->left->exec(match, node->left, origin, cursor) == OK)
-		i++;
+	}
+	if (node->re_token.data.op.max != -1)
+	{
+		while ((i < node->re_token.data.op.max && node->re_token.data.op.max > 0
+			|| node->re_token.data.op.max < 0) && origin[*cursor]
+			&& node->left->exec(match, node->left, origin, cursor) == OK)
+			i++;
+	}
 	if (node->right)
 		return node->right->exec(match, node->right, origin, cursor);
 	return (OK);
@@ -119,17 +123,14 @@ int		re_match_op_query(t_regex_match *match, t_bin_tree *node, char *origin, int
 {
 	int		save_cursor;
 
-	if (node->right)
+	save_cursor = *cursor;
+	if (node->left->exec(match, node->left, origin, cursor) == OK)
 	{
-		save_cursor = *cursor;
-		if (node->left->exec(match, node->left, origin, cursor) == OK) {
-			if (node->right->exec(match, node->right, origin, cursor) == OK)
-			{
-				return (OK);
-			}
-			(*cursor) = save_cursor;
-		} 
-		return (node->right->exec(match, node->right, origin, cursor));
+		if (!node->right)
+			return (OK);
+		else if (node->right->exec(match, node->right, origin, cursor) == OK)
+			return (OK);
+		(*cursor) = save_cursor;
 	}
 	return (OK);
 }

@@ -40,6 +40,8 @@ int		lexer_parse_plus(t_regex *regex, t_bin_tree *node, char *pat, int size_matc
 int		lexer_parse_or(t_regex *regex, t_bin_tree *node, char *pat, int size_match);
 int		lexer_parse_flag(t_regex *regex, t_bin_tree *node, char *pat, int size_match);
 
+
+
 /*
 ** Match
 */
@@ -72,7 +74,10 @@ int			push_node(t_regex *r, t_bin_tree *node);
 int		valid_node(t_bin_tree *last, t_bin_tree *node);
 
 
+void	re_compile_add_subgroup_node(t_regex *regex, t_bin_tree *node_group);
 int		re_compile_internal(t_regex *r, char *pat, int s);
+void	re_free_matches(t_regex_match *match, int nmatch);
+void	re_free(t_regex *regex);
 
 #endif
 

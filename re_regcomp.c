@@ -46,7 +46,8 @@ int	re_regcomp(t_regex *r, char *pat)
 	r->tree = 0x0;
 	r->last = 0x0;
 	r->options = 0x0;
-	r->n_subgroup_max = 0;
+	r->ngroup = 0;
+	r->ngroup_max = 0;
 	if (*pat == '/')
 	{
 		start_flag = find_start_flag(pat, len);

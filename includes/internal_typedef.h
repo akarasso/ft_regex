@@ -76,10 +76,18 @@ struct	s_token_expr_const
 	int		size;
 };
 
+struct s_token_expr_group
+{
+	char	*from;
+	int		len;
+	int		valid;
+};
+
 union	u_token_expr
 {
 	struct	s_token_expr_const cst;
 	struct	s_token_expr_range rng;
+	struct	s_token_expr_group grp;
 };
 
 union	u_token
@@ -115,16 +123,19 @@ struct	s_regex
 	char		*test;
 	t_bin_tree	*tree;
 	t_bin_tree	*last;
-	int			n_subgroup_max;
+	t_bin_tree	**node_group;
+	int			ngroup;
+	int			ngroup_max;
 	int			options;
 };
 
 struct	s_regex_match
 {
+	char			**group;
 	t_regex_match	*next;
-	char			*match;
-	char			**subgroup;
-	int				n_subgroup;
+	char			*value;
+	int				ngroup;
+	int				len;
 };
 
 #endif
