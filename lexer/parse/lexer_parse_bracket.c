@@ -1,98 +1,84 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   lexer_parse_bracket.c                              :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: akarasso <akarasso@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2019/11/21 10:47:10 by akarasso          #+#    #+#             */
+/*   Updated: 2019/11/21 17:32:59 by akarasso         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "regex.h"
 #include "internal_regex.h"
 
-int		lexer_parse_bracket_chars_classes(t_regex *regex, t_bin_tree *node, char *pat, int *cursor)
+int		lexer_try_chars_classes(t_regex *re, t_bin_tree *nd, char *s, int *crs)
 {
-	int	save_cursor;
-	int	index_char_classes;
-	int len_match;
+	int		err;
 
-	save_cursor = *cursor;
-	index_char_classes = 0;
-	while (pat[*cursor] && pat[*cursor] != ']')
-		(*cursor)++;
-	if (*cursor > 1 && pat[*cursor] == ']' && pat[*cursor - 1] == ':')
+	err = lexer_parse_bracket_chars_classes(re, nd, &s[(*crs) + 1], crs);
+	if (err == OK)
 	{
-		while (index_char_classes < char_classes_count)
-		{
-			if (!strncmp(char_classes[index_char_classes].match, &pat[save_cursor], *cursor))
-			{
-				(*cursor)++;
-				lexer_parse_bracket(regex, node, char_classes[index_char_classes].associated, ft_strlen(char_classes[index_char_classes].associated));
-				return (OK);
-			}
-			index_char_classes++;
-		}
-		return (ERROR_BAD_CHARACTERS_CLASSES);
+		(*crs)++;
+		return (OK);
 	}
-	*cursor = save_cursor;
+	else if (err != OK && err != KO)
+		return (-1);
 	return (KO);
 }
 
-int		lexer_parse_bracket_range(t_bin_tree *node, char *pat)
+void	lexer_parse_bracket_char(t_bin_tree *node, int c)
 {
-	int		start;
-	int		end;
-
-	start = *pat;
-	end = *(pat + 2);
-	if (start > end)
-		return (KO);
-	while (start <= end)
+	if ((node->re_token.options & FLAG_CASE_INSENSITIVE)
+		&& c >= 'A' && c <= 'Z')
 	{
-		if ((node->re_token.options & FLAG_CASE_INSENSITIVE) && start >= 'A' && start <= 'Z')
-			node->re_token.data.expr.rng.sbc[start + 'a' - 'A'] = 1;
+		node->re_token.data.expr.rng.sbc[c + 'a' - 'A'] = 1;
+	}
+	else
+	{
+		node->re_token.data.expr.rng.sbc[c] = 1;
+	}
+}
+
+int		lexer_parse_bracket_parser(
+	t_regex *re,
+	t_bin_tree *nd,
+	char *pat,
+	int size_match)
+{
+	int		crs;
+
+	crs = 0;
+	while (crs < size_match)
+	{
+		if (pat[crs] != '\\')
+		{
+			if (pat[crs] == '[' && pat[crs + 1] == ':')
+			{
+				if (lexer_try_chars_classes(re, nd, &pat[crs], &crs) == OK)
+					continue ;
+			}
+			if (size_match - crs > 2 && pat[crs + 1] == '-')
+			{
+				if (lexer_parse_bracket_range(nd, &pat[crs], &crs) == KO)
+					return (ERROR_RANGE_OUT_OF_ORDER);
+			}
+			continue ;
+		}
 		else
-			node->re_token.data.expr.rng.sbc[start] = 1;
-		start++;
+			crs++;
+		lexer_parse_bracket_char(nd, (int)pat[crs]);
+		crs++;
 	}
 	return (OK);
 }
 
-int		lexer_parse_bracket_parser(t_regex *regex, t_bin_tree *node, char *pat, int size_match)
-{
-	int		cursor;
-	int		err;
-	int		end_bracket;
-
-	cursor = 0;
-	while (cursor < size_match)
-	{
-		if (pat[cursor] == '\\')
-		{
-			cursor++;
-			continue;
-		}
-		if (pat[cursor] == '[' && pat[cursor + 1] == ':')
-		{
-			err = lexer_parse_bracket_chars_classes(regex, node, &pat[cursor + 1], &cursor);
-			if (err == OK)
-			{
-				cursor++;
-				continue;
-			}
-			else if (err != OK && err != KO)
-				return (ERROR_BAD_CHARACTERS_CLASSES);
-		}
-		if (size_match - cursor > 2 && pat[cursor + 1] == '-')
-		{
-			if (lexer_parse_bracket_range(node, &pat[cursor]) == KO)
-				return (ERROR_RANGE_OUT_OF_ORDER);
-			cursor += 2;
-		}
-		else
-		{
-			if ((node->re_token.options & FLAG_CASE_INSENSITIVE) && pat[cursor] >= 'A' && pat[cursor] <= 'Z')
-				node->re_token.data.expr.rng.sbc[(int)pat[cursor] + 'a' - 'A'] = 1;
-			else
-				node->re_token.data.expr.rng.sbc[(int)pat[cursor]] = 1;
-		}
-		cursor++;
-	}
-	return OK;
-}
-
-int		lexer_parse_bracket(t_regex *regex, t_bin_tree *node, char *pat, int size_match)
+int		lexer_parse_bracket(
+	t_regex *regex,
+	t_bin_tree *node,
+	char *pat,
+	int size_match)
 {
 	int err;
 
@@ -103,5 +89,5 @@ int		lexer_parse_bracket(t_regex *regex, t_bin_tree *node, char *pat, int size_m
 	}
 	else
 		err = lexer_parse_bracket_parser(regex, node, &pat[1], size_match - 2);
-	return err;
+	return (err);
 }

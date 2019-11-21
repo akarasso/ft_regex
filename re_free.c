@@ -1,10 +1,22 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   re_free.c                                          :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: akarasso <akarasso@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2019/11/21 10:14:07 by akarasso          #+#    #+#             */
+/*   Updated: 2019/11/21 11:16:28 by akarasso         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "regex.h"
 #include "internal_regex.h"
 
 void	re_free_tree(t_bin_tree *tree)
 {
 	if (!tree)
-		return;
+		return ;
 	if (tree->left)
 		re_free_tree(tree->left);
 	if (tree->right)

@@ -1,21 +1,33 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   re_regcomp.c                                       :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: akarasso <akarasso@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2019/11/21 10:14:07 by akarasso          #+#    #+#             */
+/*   Updated: 2019/11/21 11:26:35 by akarasso         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "regex.h"
 #include "internal_regex.h"
 
-static int	find_flag(char c)
+static int		find_flag(char c)
 {
 	int i;
 
 	i = 0;
-	while (i < flag_count)
+	while (i < g_flag_count)
 	{
-		if (flags[i].flag == c)
-			return flags[i].value;
+		if (g_flags[i].flag == c)
+			return (g_flags[i].value);
 		i++;
 	}
-	return 0x0;
+	return (0x0);
 }
 
-static void	parse_flag(t_regex *r, char *s)
+static void		parse_flag(t_regex *r, char *s)
 {
 	while (*s)
 	{
@@ -24,7 +36,7 @@ static void	parse_flag(t_regex *r, char *s)
 	}
 }
 
-int		find_start_flag(char *s, int len)
+int				find_start_flag(char *s, int len)
 {
 	while (len)
 	{
@@ -35,7 +47,7 @@ int		find_start_flag(char *s, int len)
 	return (-1);
 }
 
-int	re_regcomp(t_regex *r, char *pat)
+int				re_regcomp(t_regex *r, char *pat)
 {
 	int		ret;
 	int		len;

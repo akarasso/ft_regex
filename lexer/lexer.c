@@ -1,13 +1,25 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   lexer.c                                            :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: akarasso <akarasso@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2019/11/21 10:23:28 by akarasso          #+#    #+#             */
+/*   Updated: 2019/11/21 16:44:49 by akarasso         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "regex.h"
 #include "internal_regex.h"
 
-t_char_class char_classes[] = {
+t_char_class g_char_classes[] = {
 	{":alnum:", "[A-Za-z0-9]"},
 };
 
-size_t char_classes_count = sizeof(char_classes) / sizeof(char_classes[0]);
+int g_char_classes_count = sizeof(g_char_classes) / sizeof(g_char_classes[0]);
 
-t_lexer_flag flags[] = {
+t_lexer_flag g_flags[] = {
 	{ 'm', FLAG_MULTILINE },
 	{ 'i', FLAG_CASE_INSENSITIVE },
 	{ 'x', FLAG_IGNORE_WHITESPACE },
@@ -17,9 +29,9 @@ t_lexer_flag flags[] = {
 	{ 'g', FLAG_GLOBAL },
 };
 
-size_t flag_count = sizeof(flags) / sizeof(flags[0]);
+int g_flag_count = sizeof(g_flags) / sizeof(g_flags[0]);
 
-t_lexer_match_parser parser_func[] = {
+t_lexer_match_parser g_parser_func[] = {
 	{
 		lexer_match_comment,
 		lexer_parse_comment,
@@ -113,4 +125,4 @@ t_lexer_match_parser parser_func[] = {
 	},
 };
 
-size_t rule_count = sizeof(parser_func) / sizeof(parser_func[0]);
+int g_rule_count = sizeof(g_parser_func) / sizeof(g_parser_func[0]);

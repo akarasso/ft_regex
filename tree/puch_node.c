@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   puch_node.c                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: akarasso <akarasso@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2019/11/21 10:14:07 by akarasso          #+#    #+#             */
+/*   Updated: 2019/11/21 10:56:45 by akarasso         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "regex.h"
 #include "internal_regex.h"
 
@@ -29,7 +41,7 @@ void	push_node_op_or(t_regex *r, t_bin_tree *node)
 int		push_node(t_regex *r, t_bin_tree *node)
 {
 	if (valid_node(r->last, node) != OK)
-		return KO;
+		return (KO);
 	if (!r->last)
 	{
 		r->tree = node;

@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   lexer_parse_const.c                                :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: akarasso <akarasso@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2019/11/21 10:48:09 by akarasso          #+#    #+#             */
+/*   Updated: 2019/11/21 16:34:48 by akarasso         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "regex.h"
 #include "internal_regex.h"
 
@@ -9,16 +21,17 @@ void	re_strncpy(t_bin_tree *node, char *dest, char *src, int n)
 		{
 			src++;
 			n--;
-			continue;
+			continue ;
 		}
 		if (*src == '\\')
 		{
 			src++;
 			n--;
 			if (!n)
-				break;
+				break ;
 		}
-		if ((node->re_token.options & FLAG_CASE_INSENSITIVE) && *src >= 'A' && *src <= 'Z')
+		if ((node->re_token.options & FLAG_CASE_INSENSITIVE)
+			&& *src >= 'A' && *src <= 'Z')
 			*dest = *src + 'a' - 'A';
 		else
 			*dest = *src;
@@ -29,9 +42,13 @@ void	re_strncpy(t_bin_tree *node, char *dest, char *src, int n)
 	*dest = 0;
 }
 
-
-int		lexer_parse_const(t_regex *regex, t_bin_tree *node, char *pat, int size_match)
+int		lexer_parse_const(
+	t_regex *regex,
+	t_bin_tree *node,
+	char *pat,
+	int size_match)
 {
+	(void)regex;
 	node->re_token.data.expr.cst.value = malloc(size_match + 1);
 	re_strncpy(node, node->re_token.data.expr.cst.value, pat, size_match);
 	node->re_token.data.expr.cst.size = size_match;

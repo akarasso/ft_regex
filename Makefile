@@ -3,7 +3,7 @@ REGEX_INCLUDE ?= -I./includes
 CC ?= gcc
 NAME = regex
 CFLAGS := ${CFLAGS}
-CFLAGS += -g3 #-ansi -std=99
+CFLAGS += -g3 -g3 -Wall -Werror -Wextra
 CFLAGS += $(REGEX_INCLUDE)
 LIBS :=
 

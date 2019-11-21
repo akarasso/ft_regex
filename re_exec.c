@@ -1,84 +1,61 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   re_exec.c                                          :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: akarasso <akarasso@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2019/11/21 10:43:21 by akarasso          #+#    #+#             */
+/*   Updated: 2019/11/21 17:08:46 by akarasso         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "regex.h"
 #include "internal_regex.h"
 
-void			result_push(t_regex_match **results, t_regex_match *match)
+void			re_exec_init(
+	int *n_match,
+	t_regex_match **end_result,
+	int *cursor,
+	t_regex_match **results)
 {
-	t_regex_match *new;
-
-	new = malloc(sizeof(*new));
-	memcpy(new, match, sizeof(*new));
-	if (*results)
-		new->next = *results;
-	else
-		new->next = 0x0;
-	*results = new;
+	*n_match = 0;
+	*end_result = 0x0;
+	*cursor = 0;
+	*results = 0x0;
 }
 
-t_regex_match	*results_to_arr(t_regex_match *results, int n)
+void			re_extract_match(
+	t_regex_match *match,
+	int old,
+	int cursor,
+	char *str)
 {
-	t_regex_match	*tr;
-	t_regex_match	*tmp;
-
-	tr = 0x0;
-	if (n)
-	{
-		tr = malloc(sizeof(*tr) * (n));
-		while (n)
-		{
-			memcpy(&tr[n - 1], results, sizeof(*results));
-			tmp = results->next;
-			free(results);
-			results = tmp;
-			n--;
-		}
-	}
-	return tr;
+	match->value = malloc(cursor - old + 1);
+	memcpy(match->value, &str[old], cursor - old);
+	match->value[cursor - old] = 0;
 }
 
-void	re_extract_group(t_regex *regex, t_regex_match *match, char *str)
-{
-	int i;
-
-	i = 0;
-	match->ngroup = 0;
-	match->group = malloc(regex->ngroup * sizeof(*match->group));
-	while (i < regex->ngroup)
-	{
-		if (regex->node_group[i]->re_token.data.expr.grp.valid == 0)
-		{
-			match->group[match->ngroup] = malloc(regex->node_group[i]->re_token.data.expr.grp.len + 1);
-			memcpy(match->group[match->ngroup], regex->node_group[i]->re_token.data.expr.grp.from, regex->node_group[i]->re_token.data.expr.grp.len);
-			match->group[match->ngroup][regex->node_group[i]->re_token.data.expr.grp.len] = 0;
-			match->ngroup++;
-		}
-		i++;
-	}
-}
-
-int		re_exec(t_regex *regex, t_regex_match **end_result, int *n_match, char *str)
+int				re_exec(
+	t_regex *regex,
+	t_regex_match **end_result,
+	int *n_match,
+	char *str)
 {
 	t_regex_match	match;
 	t_regex_match	*results;
 	int				cursor;
 	int				old;
 
-	*n_match = 0;
-	*end_result = 0x0;
-	cursor = 0;
-	results = 0x0;
-	if (!regex->tree)
-		return (KO);
+	re_exec_init(n_match, end_result, &cursor, &results);
 	while (str[cursor])
 	{
 		old = cursor;
 		if (regex->tree->exec(&match, regex->tree, str, &cursor) == OK)
 		{
 			(*n_match)++;
-			match.value = malloc(cursor - old + 1);
-			memcpy(match.value, &str[old], cursor - old);
-			match.value[cursor - old] = 0;
-			re_extract_group(regex, &match, str);
-			result_push(&results, &match);
+			re_extract_match(&match, old, cursor, str);
+			re_result_push(regex, &results, &match, str);
 			match.ngroup = 0;
 			if (!(regex->options & FLAG_GLOBAL))
 				return (OK);
@@ -88,6 +65,6 @@ int		re_exec(t_regex *regex, t_regex_match **end_result, int *n_match, char *str
 		else
 			cursor++;
 	}
-	*end_result = results_to_arr(results, *n_match);
+	*end_result = re_results_to_arr(results, *n_match);
 	return (OK);
-}	
+}

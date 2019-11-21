@@ -1,27 +1,32 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   lexer_match_plus.c                                 :+:      :+:    :+:   */
+/*   re_match_expr_rng.c                                :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: akarasso <akarasso@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2019/11/21 10:45:37 by akarasso          #+#    #+#             */
-/*   Updated: 2019/11/21 16:19:47 by akarasso         ###   ########.fr       */
+/*   Created: 2019/11/21 10:20:28 by akarasso          #+#    #+#             */
+/*   Updated: 2019/11/21 17:00:34 by akarasso         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "regex.h"
 #include "internal_regex.h"
 
-int		lexer_match_plus(
-	t_regex *regex,
-	char *pat,
-	int size_left,
-	int *size_match)
+int		re_match_expr_rng(
+	t_regex_match *match,
+	t_bin_tree *node,
+	char *origin,
+	int *cursor)
 {
-	(void)regex;
-	if (!size_left || *pat != '+')
-		return (NO);
-	*size_match = 1;
-	return (OK);
+	(void)match;
+	if ((node->re_token.data.expr.rng.sbc[(unsigned int)*origin] == 1
+			&& node->re_token.data.expr.rng.reverse == 0)
+		|| (node->re_token.data.expr.rng.sbc[(unsigned int)*origin] == 0
+			&& node->re_token.data.expr.rng.reverse == 1))
+	{
+		(*cursor)++;
+		return (OK);
+	}
+	return (KO);
 }

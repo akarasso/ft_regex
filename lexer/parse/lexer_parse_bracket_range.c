@@ -1,27 +1,36 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   lexer_match_plus.c                                 :+:      :+:    :+:   */
+/*   lexer_parse_bracket_range.c                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: akarasso <akarasso@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2019/11/21 10:45:37 by akarasso          #+#    #+#             */
-/*   Updated: 2019/11/21 16:19:47 by akarasso         ###   ########.fr       */
+/*   Created: 2019/11/21 10:47:10 by akarasso          #+#    #+#             */
+/*   Updated: 2019/11/21 17:30:23 by akarasso         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "regex.h"
 #include "internal_regex.h"
 
-int		lexer_match_plus(
-	t_regex *regex,
-	char *pat,
-	int size_left,
-	int *size_match)
+int		lexer_parse_bracket_range(t_bin_tree *node, char *pat, int *cursor)
 {
-	(void)regex;
-	if (!size_left || *pat != '+')
-		return (NO);
-	*size_match = 1;
+	int		start;
+	int		end;
+
+	start = *pat;
+	end = *(pat + 2);
+	if (start > end)
+		return (KO);
+	while (start <= end)
+	{
+		if ((node->re_token.options & FLAG_CASE_INSENSITIVE)
+			&& start >= 'A' && start <= 'Z')
+			node->re_token.data.expr.rng.sbc[start + 'a' - 'A'] = 1;
+		else
+			node->re_token.data.expr.rng.sbc[start] = 1;
+		start++;
+	}
+	(*cursor) += 2;
 	return (OK);
 }
